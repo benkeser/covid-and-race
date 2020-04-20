@@ -50,7 +50,7 @@ Once downloaded, the image can be run using the `docker run` command. In the con
 results are saved to `/County_COVID/Results`. You may wish to [mount a local directory](https://docs.docker.com/storage/volumes/) to the `/County_COVID` directory 
 in the container, so that you can open results outside the container. For example,
 to run the container with mounted local directory `/path/to/local/directory`, you 
-can execute. 
+can execute the following at the command line.
 
 ``` bash 
 docker run -it \
@@ -62,7 +62,7 @@ The entry point for the container is a bash script. To compile the `R` Markdown 
 you can execute the following at the command line inside the container. 
 
 ``` bash
-Rscript -e `rmarkdown::render("/County_COVID/Code/report.Rmd")
+Rscript -e 'rmarkdown::render("/County_COVID/Code/report.Rmd")'
 ```
 
 After the report compiles you should see a document `/path/to/local/directory/Results/report.docx` that contains tables from the paper. The folder `/path/to/local/directory/Results/` should also include the figures from the paper as well. Note that in order
