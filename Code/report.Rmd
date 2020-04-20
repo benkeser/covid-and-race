@@ -1,0 +1,113 @@
+---
+title: 'Tables and Figures'
+output: word_document
+---
+
+```{r options, echo = FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
+```
+
+# Table 1
+
+```{r clean-and-load}
+source("/County_COVID/Code/00_cleandata.R")
+source("/County_COVID/Code/01_tablefunctions.R")
+```
+
+```{r, make-table-1}
+table1 <- make_table1(dat = dat,
+                      pct_black_threshold = c(13))
+knitr::kable(table1)
+```
+
+# Table 2
+
+```{r fitting-models, cache = TRUE}
+source("/County_COVID/Code/02_modelfunctions.R")
+
+# regression formula
+model_formula <- paste0(
+    "percentblack + percentwhite + percentover65 + pctunemployed + pctuninsured + ",
+    " + percdiabetes + heartdiseasedeathrate + HIVrate + cerebroandhypertensiondeathrate",
+    " + urbanicity2013 + pm25 + peroccgreaterthan1 + socialdistance + time_since_first_case"
+)
+
+# case model
+case_model <- fit_model(dat = dat, 
+                        states = states,
+                        model_outcome = "covidcases",
+                        model_formula = model_formula) 
+
+# death model                        
+death_model <- fit_model(dat = dat,
+                         states = states, 
+                         model_outcome = "coviddeaths",
+                         model_formula = model_formula)
+```
+
+```{r model-tables}
+# table 3
+table3 <- make_table3(mod_cases = case_model$mod,
+                      mod_deaths = death_model$mod,
+                      dat = dat)
+
+knitr::kable(table3)
+```
+
+# Figure 1
+
+```{r}
+source("/County_COVID/Code/03_plotfunctions.R")
+
+# make bubble plots for cases and deaths
+death_plot <- make_bubble_plot(dat = dat, deaths = TRUE)
+cases_plot <- make_bubble_plot(dat = dat, deaths = FALSE)
+
+death_ploty <- ggplotly(death_plot, tooltip = "text")
+cases_ploty <- ggplotly(cases_plot, tooltip = "text")
+saveWidget(death_ploty, file.path("/County_COVID/Results", "bubble_plot_deaths.html"), lib = "lib")
+saveWidget(cases_ploty, file.path("/County_COVID/Results", "bubble_plot_cases.html"), lib = "lib")
+cat("Bubble plots saved to results directory.")
+```
+
+# Figure 2
+
+```{r get-plot-data, cache = TRUE}
+# get data for plot
+paf_plot_data_cases <- get_paf_plot_data(post_samps = case_model$post_samps, 
+                                 		 mod = case_model$mod,
+                                 		 dat = dat, 
+                                 		 pct_black_thresholds = c(13))
+
+paf_plot_data_deaths <- get_paf_plot_data(post_samps = death_model$post_samps, 
+                                 		 mod = death_model$mod,
+                                 		 dat = dat, 
+                                 		 pct_black_thresholds = c(13))
+```
+
+```{r make-figure-2, cache = TRUE}
+case_plot <- make_paf_plot(paf_plot_data = paf_plot_data_cases,
+                           dat = dat, 
+                           pct_black_threshold = c(13))
+
+knitr::kable(paf_plot_data_cases[,c(1:7, 9)], digits = c(3,3,3,0,0,0,0,0))
+
+
+death_plot <- make_paf_plot(paf_plot_data = paf_plot_data_deaths,
+                            dat = dat, 
+                            pct_black_threshold = c(13))
+
+knitr::kable(paf_plot_data_deaths[,c(1:7, 9)], digits = c(3,3,3,0,0,0,0,0))
+
+
+pdf("/County_COVID/Results/case_plot.pdf")
+case_plot
+dev.off()
+
+pdf("/County_COVID/Results/death_plot.pdf")
+death_plot
+dev.off()
+cat("PAF figures saved to results directory.")
+```
