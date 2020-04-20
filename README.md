@@ -4,7 +4,7 @@
 
 **Authors:** Gregorio A. Millett, MPH, 
 Austin T. Jones, MA,
-David  Bankeser, PhD,
+David  Benkeser, PhD,
 Stefan Baral, MD, MPH, MBA,
 Laina Mercer, PhD,
 Chris Beyrer, MD, MPH,
