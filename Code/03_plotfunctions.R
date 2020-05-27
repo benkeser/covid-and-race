@@ -263,3 +263,39 @@ make_bubble_plot <- function(dat, deaths = TRUE){
   return(bubble_plot)                
 }
 
+
+#' make a plot of RRs for percent black by urbanicity group
+#' @param post_samps samples from posterior of fitted model 
+#' @param dat the data used to fit the model
+#' @param plot_limits plotting limits for paf axis
+#' @return a ggplot object of the plot
+make_int_plot <- function(post_samps, dat, plot_limits = c(0.75, 2)){
+  race_quant <- quantile(dat$percentblack, p = c(0.25, 0.75), na.rm = TRUE)
+  race_jump <- diff(race_quant)
+
+  # get data.frame of risk ratios for plot
+  post_rr_by_urbanicity <- exp(race_jump * post_samps$fixed_effects[,"percentblack:1"])
+  rr_rslt <- c(mean(post_rr_by_urbanicity), as.numeric(quantile(post_rr_by_urbanicity, p = c(0.025, 0.975))))
+  for(i in 2:6){
+    post_rr_by_urbanicity <- exp(race_jump * (post_samps$fixed_effects[, paste0("percentblack:1")] + 
+                                                post_samps$fixed_effects[, paste0("percentblack:factor(urbanicity2013)", i,":1")]))
+    rr_rslt <- rbind(rr_rslt, c(mean(post_rr_by_urbanicity), as.numeric(quantile(post_rr_by_urbanicity, p = c(0.025, 0.975)))))
+  }
+  out <- data.frame(rr_rslt)
+  colnames(out) <- c("Risk Ratio (95% CI)", "cil", "ciu")
+  out$Urbanicity <- c("Large central metro", "Large fringe metro",
+                 "Medium metro", "Small metro", "Micropolitan",
+                 "Noncore")
+  out$Urbanicity <- factor(out$Urbanicity, levels = rev(c("Large central metro", "Large fringe metro",
+                 "Medium metro", "Small metro", "Micropolitan",
+                 "Noncore")))
+  p <- ggplot(out, aes(x = Urbanicity, y = `Risk Ratio (95% CI)`)) +
+        geom_point() + 
+        geom_errorbar(aes(ymin = cil, ymax = ciu), width = 0.125) + 
+        theme_bw() + 
+        coord_flip(ylim = plot_limits, clip = "off") + 
+        geom_hline(yintercept = 1, linetype = "dashed") + 
+        theme(legend.position = "none")
+
+  return(p)
+}

@@ -45,6 +45,26 @@ death_model <- fit_model(dat = dat,
                          states = states, 
                          model_outcome = "coviddeaths",
                          model_formula = model_formula)
+
+# reviewer-requested interaction
+model_formula_interaction <- paste0(
+    "percentblack*factor(urbanicity2013) + percentwhite + percentover65 + pctunemployed + pctuninsured + ",
+    " + percdiabetes + heartdiseasedeathrate + HIVrate + cerebroandhypertensiondeathrate",
+    " + pm25 + peroccgreaterthan1 + socialdistance + time_since_first_case"
+)
+
+# case model with interaction
+case_model_interaction <- fit_model(dat = dat, 
+                                    states = states,
+                                    model_outcome = "covidcases",
+                                    model_formula = model_formula_interaction) 
+
+# death model with interaction               
+death_model_interaction <- fit_model(dat = dat,
+                                     states = states, 
+                                     model_outcome = "coviddeaths",
+                                     model_formula = model_formula_interaction)
+
 ```
 
 ```{r model-tables}
@@ -110,4 +130,23 @@ pdf("/County_COVID/Results/death_plot.pdf")
 death_plot
 dev.off()
 cat("PAF figures saved to results directory.")
+```
+
+# Figure 3
+
+```{r make-interaction-plot}
+case_interaction_plot <- make_int_plot(dat = dat, 
+                                       post_samps = case_model_interaction$post_samps)
+death_interaction_plot <- make_int_plot(dat = dat, 
+                                        post_samps = death_model_interaction$post_samps)
+pdf("/County_COVID/Results/case_interaction_plot.pdf",
+    width = 3.25, height = 3.5)
+case_interaction_plot
+dev.off()
+
+pdf("/County_COVID/Results/death_interaction_plot.pdf",
+    width = 3.25, height = 3.5)
+death_interaction_plot
+dev.off()
+cat("Interaction figures saved to results directory.")
 ```

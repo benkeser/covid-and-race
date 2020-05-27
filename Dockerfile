@@ -34,7 +34,7 @@ RUN mkdir /County_COVID/Code
 RUN mkdir /County_COVID/Data
 
 COPY Code/ /County_COVID/Code/
-COPY Data/ /County_COVID/Code/
+COPY Data/ /County_COVID/Data/
 
 # entry point to container opens bash
 CMD /bin/bash
